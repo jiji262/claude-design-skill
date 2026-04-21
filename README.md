@@ -194,3 +194,7 @@ This skill stays intentionally lean: markdown + small HTML starters + a few samp
 ## License
 
 MIT. See [LICENSE](LICENSE). The original Claude Design system prompt content is Anthropic's; this repository contains an adapted, restructured rendition intended for use with the Claude Skill specification.
+
+## Special Thanks
+
+[linux.do](https://linux.do)
