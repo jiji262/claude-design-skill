@@ -1,0 +1,212 @@
+<!doctype html>
+<!--
+  Demo 2 · Design canvas
+  Shows three differentiated hero variants for a fictional reading-companion app
+  ("Page & Margin"), drawn from three different design schools:
+    A · Swiss Editorial — structural, precise, quiet authority
+    B · Kenya Hara minimalism — generous whitespace, single focal object
+    C · Brutalist web — raw text, monospace, no polish
+
+  Each cell is the same size (so variants compare cleanly), labeled with what
+  it's exploring, on a neutral cream canvas so the variant colors read correctly.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Demo · Page & Margin — hero variations</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #efece5; color: #111; }
+    .page {
+      max-width: 1440px; margin: 0 auto; padding: 72px 48px;
+    }
+    .page > header { margin-bottom: 48px; }
+    .page-title { font-size: 28px; font-weight: 500; letter-spacing: -0.01em; margin: 0; }
+    .page-sub { margin: 8px 0 0; color: #6b6359; font-size: 15px; }
+
+    .canvas {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px;
+    }
+    .cell {
+      background: white; border-radius: 6px; overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.06);
+    }
+    .cell-head {
+      padding: 14px 18px; border-bottom: 1px solid #eee;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .cell-head .tag {
+      font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 3px;
+      background: #efece5; color: #6b6359; font-weight: 500;
+    }
+    .cell-head h3 { font-size: 14px; margin: 0; font-weight: 600; }
+    .cell-head .why { font-size: 12px; color: #6b6359; margin-left: auto; }
+    .cell-body { aspect-ratio: 4 / 3; position: relative; overflow: hidden; }
+
+    /* Variant A — Swiss Editorial */
+    .vA {
+      background: #f4f0ea; color: #111;
+      padding: 40px 48px;
+      display: grid; grid-template-rows: auto 1fr auto;
+      font-family: 'Inter', sans-serif;
+    }
+    .vA .head { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #6b6359; font-weight: 500; }
+    .vA .headline {
+      font-size: 68px; line-height: 0.96; letter-spacing: -0.03em; font-weight: 400;
+      margin: auto 0; max-width: 540px;
+    }
+    .vA .accent { color: #c94727; }
+    .vA .foot { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 24px; }
+    .vA .foot p { font-size: 12px; color: #6b6359; margin: 0; max-width: 340px; line-height: 1.45; }
+    .vA .cta { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; border-top: 1px solid #111; padding-top: 6px; }
+
+    /* Variant B — Kenya Hara minimalism */
+    .vB {
+      background: #fbf9f4; color: #333;
+      padding: 48px 56px;
+      display: grid; grid-template-rows: 1fr auto;
+      font-family: 'Fraunces', serif;
+    }
+    .vB .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #a88a5e; margin: auto;
+    }
+    .vB .foot { display: grid; place-items: center; text-align: center; gap: 10px; }
+    .vB .eyebrow { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: #a88a5e; font-family: 'Inter', sans-serif; font-weight: 500; }
+    .vB .name { font-size: 32px; font-weight: 300; letter-spacing: -0.01em; }
+    .vB .tag { font-size: 12px; color: #6b6359; font-family: 'Inter', sans-serif; max-width: 280px; line-height: 1.5; }
+
+    /* Variant C — Brutalist web */
+    .vC {
+      background: white; color: #000;
+      padding: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px; line-height: 1.5;
+    }
+    .vC pre { margin: 0; font: inherit; white-space: pre-wrap; }
+    .vC hr { border: none; border-top: 1px solid #000; margin: 12px 0; }
+    .vC h1 { font-size: 28px; font-weight: 500; margin: 0 0 6px; font-family: 'Fraunces', serif; letter-spacing: -0.02em; }
+    .vC .link { color: #0000ee; text-decoration: underline; }
+    .vC table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+    .vC td { padding: 4px 8px 4px 0; vertical-align: top; border-bottom: 1px dashed #aaa; }
+    .vC td:first-child { color: #666; width: 110px; }
+
+    /* Variant D — Editorial magazine */
+    .vD {
+      background: #1a1613; color: #f0e9dd;
+      padding: 36px 44px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+      font-family: 'Inter', sans-serif;
+    }
+    .vD .left { display: grid; grid-template-rows: auto 1fr auto; }
+    .vD .masthead { font-family: 'Fraunces', serif; font-size: 13px; letter-spacing: 0.05em; color: #c4a77d; }
+    .vD .deck {
+      font-family: 'Fraunces', serif; font-weight: 400;
+      font-size: 52px; line-height: 0.98; letter-spacing: -0.02em;
+      margin-top: 16px;
+    }
+    .vD .byline { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: #8a7c68; margin-top: auto; }
+    .vD .right { background: #2a2420; border-radius: 3px; display: grid; place-items: center; padding: 24px; }
+    .vD .pull-quote {
+      font-family: 'Fraunces', serif; font-weight: 300; font-size: 22px; line-height: 1.3;
+      border-left: 2px solid #c4a77d; padding-left: 18px; color: #f0e9dd;
+    }
+    .vD .pull-quote cite { display: block; margin-top: 14px; font-family: 'Inter', sans-serif; font-size: 11px; font-style: normal; color: #8a7c68; letter-spacing: 0.1em; text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1 class="page-title">Page &amp; Margin — hero variations</h1>
+      <p class="page-sub">Four differentiated directions for the marketing hero of a fictional reading-companion app. Each cell is labelled with the style it's exploring and a one-line note on when that direction fits.</p>
+    </header>
+
+    <main class="canvas">
+
+      <section class="cell">
+        <div class="cell-head">
+          <span class="tag">A</span>
+          <h3>Swiss Editorial</h3>
+          <span class="why">Structural authority · good for B2B, professional tools</span>
+        </div>
+        <div class="cell-body vA">
+          <div class="head">
+            <span>Page &amp; Margin</span>
+            <span>V.01 · 2026</span>
+          </div>
+          <h2 class="headline">Reading you can <span class="accent">argue with.</span></h2>
+          <div class="foot">
+            <p>Turn your margin notes into a conversation with every book you've read. Private by default, syncable across devices, exportable as a single archive file you own.</p>
+            <div class="cta">Start a shelf →</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cell">
+        <div class="cell-head">
+          <span class="tag">B</span>
+          <h3>Quiet Minimalism</h3>
+          <span class="why">Kenya Hara lineage · good for lifestyle, wellness, craft</span>
+        </div>
+        <div class="cell-body vB">
+          <div class="dot" aria-hidden="true"></div>
+          <div class="foot">
+            <span class="eyebrow">Page &amp; Margin</span>
+            <div class="name">Read, slowly.</div>
+            <p class="tag">A notebook for margins, and the thoughts that outlive the book.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cell">
+        <div class="cell-head">
+          <span class="tag">C</span>
+          <h3>Brutalist Web</h3>
+          <span class="why">Are.na lineage · good for indie, text-forward, dev audiences</span>
+        </div>
+        <div class="cell-body vC">
+          <pre>// page-and-margin v0.2.1
+// a notebook for the books you actually read</pre>
+          <hr>
+          <h1>Page &amp; Margin</h1>
+          <p style="font-family: 'Fraunces', serif; margin: 0 0 10px;">Every note you ever took on every book you ever finished, in one plain-text archive you can keep forever.</p>
+          <hr>
+          <table>
+            <tr><td>STORAGE</td><td>plain text · yours · ~40KB per 100 books</td></tr>
+            <tr><td>SYNC</td><td>iCloud / Dropbox / your git repo</td></tr>
+            <tr><td>EXPORT</td><td>markdown, epub, csv, pdf</td></tr>
+            <tr><td>PRICE</td><td>$29 once, not a subscription</td></tr>
+          </table>
+          <p><a class="link" href="#">→ try the beta</a> &nbsp; <a class="link" href="#">→ read the manifesto</a></p>
+        </div>
+      </section>
+
+      <section class="cell">
+        <div class="cell-head">
+          <span class="tag">D</span>
+          <h3>Editorial Magazine</h3>
+          <span class="why">New York Magazine lineage · good for opinion-led, storytelling brands</span>
+        </div>
+        <div class="cell-body vD">
+          <div class="left">
+            <div class="masthead">Page &amp; Margin · Issue N° 01</div>
+            <div class="deck">A notebook<br>with opinions<br>about what you read.</div>
+            <div class="byline">Shipping Spring 2026</div>
+          </div>
+          <div class="right">
+            <blockquote class="pull-quote">
+              "The book was finished,<br>but the argument had just started."
+              <cite>— from the launch essay</cite>
+            </blockquote>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>
