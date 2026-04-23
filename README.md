@@ -6,6 +6,12 @@ A portable Claude skill that turns Claude into an expert designer for HTML-based
 
 Adapted from Claude.ai's internal *Design* product system prompt, restructured to follow the [Claude Skill specification](https://docs.claude.com/en/docs/claude-code/skills) with progressive disclosure (lean `SKILL.md` + on-demand references + copy-paste starter assets + real sample outputs).
 
+**Available on skills.sh:** [skills.sh/jiji262/claude-design-skill/claude-design](https://skills.sh/jiji262/claude-design-skill/claude-design)
+
+```bash
+npx skills add jiji262/claude-design-skill -g
+```
+
 ---
 
 ## Contents
@@ -75,9 +81,9 @@ The whole repo IS the skill. `SKILL.md` sits at the root, so `npx skills add` an
 
 ## Installation
 
-### Option A — `npx skills` (recommended)
+### Option A — skills.sh / `npx skills` (recommended)
 
-Works across 40+ coding agents (Claude Code, Codex, Cursor, OpenCode, Gemini CLI, Cline, …). Install globally:
+This skill is published on [skills.sh](https://skills.sh/jiji262/claude-design-skill/claude-design), the open registry for Claude Code skills. One command installs it across 40+ coding agents (Claude Code, Codex, Cursor, OpenCode, Gemini CLI, Cline, …). Install globally:
 
 ```bash
 npx skills add jiji262/claude-design-skill -g

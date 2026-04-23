@@ -6,6 +6,12 @@
 
 改编自 Claude.ai 内部 *Design* 产品的系统提示词，按 [Claude Skill 规范](https://docs.claude.com/en/docs/claude-code/skills) 重新组织：`SKILL.md` 保持精简，细节拆分为按需加载的 `references/`，可复用的起手模板放在 `assets/`，真实示例产出放在 `demos/`。
 
+**已上架 skills.sh：** [skills.sh/jiji262/claude-design-skill/claude-design](https://skills.sh/jiji262/claude-design-skill/claude-design)
+
+```bash
+npx skills add jiji262/claude-design-skill -g
+```
+
 ---
 
 ## 目录
@@ -75,9 +81,9 @@ claude-design-skill/                # 仓库根 = 这个 skill 本身
 
 ## 安装
 
-### 方式 A · `npx skills`（推荐）
+### 方式 A · skills.sh / `npx skills`（推荐）
 
-同一条命令对 40+ 种 coding agent 生效（Claude Code、Codex、Cursor、OpenCode、Gemini CLI、Cline 等）。全局安装：
+本 skill 已发布到 [skills.sh](https://skills.sh/jiji262/claude-design-skill/claude-design)——Claude Code skills 的开放注册表。一条命令覆盖 40+ 种 coding agent（Claude Code、Codex、Cursor、OpenCode、Gemini CLI、Cline 等）。全局安装：
 
 ```bash
 npx skills add jiji262/claude-design-skill -g
