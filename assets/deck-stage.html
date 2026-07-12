@@ -25,12 +25,16 @@
     html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: var(--stage-bg); font-family: system-ui, sans-serif; }
 
     .stage {
-      position: fixed; inset: 0; display: grid; place-items: center;
+      position: fixed; inset: 0;
     }
+    /* Absolute-center the canvas: a grid track sized by the 1920px canvas overflows
+       narrow viewports and anchors left, shifting the deck off-center. The
+       translate(-50%,-50%) must stay in the same transform as the scale (see fit()). */
     .canvas {
       width: 1920px; height: 1080px;
+      position: absolute; left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
       transform-origin: center center;
-      position: relative;
       background: white;
       box-shadow: 0 40px 80px rgba(0,0,0,0.4);
     }
@@ -58,7 +62,7 @@
       @page { size: 1920px 1080px; margin: 0; }
       html, body { background: white; }
       .stage { position: static; display: block; height: auto; }
-      .canvas { transform: none !important; width: 1920px; height: 1080px; box-shadow: none; page-break-after: always; }
+      .canvas { position: static; transform: none !important; width: 1920px; height: 1080px; box-shadow: none; page-break-after: always; }
       .slide { display: block !important; }
       .chrome { display: none; }
     }
@@ -126,7 +130,7 @@
         const sx = window.innerWidth / 1920;
         const sy = window.innerHeight / 1080;
         const scale = Math.min(sx, sy);
-        canvas.style.transform = `scale(${scale})`;
+        canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
       }
 
       prev.addEventListener('click', () => go(idx - 1));
