@@ -6,18 +6,15 @@ description: >-
   and visual explorations. Use whenever the user asks to design, mock up,
   prototype, visualize, storyboard, or explore UI options — including phrases
   like "make a deck", "design a landing page", "prototype this flow",
-  "animate this concept", "turn this into a clickable mockup",
-  "show me options for X", "build a pitch deck", "create a poster",
-  "visualize this idea", "I don't know what style I want", or "design
-  something for <brand>". Enforces fact verification (WebSearch before
-  assuming a product exists or its version), the Core Asset Protocol for
-  branded work (logo and product shots and UI screenshots are first-class,
-  not just colors and fonts), a Design Direction Advisor fallback that
-  offers 3 differentiated directions from 10 design philosophies when the
-  brief is too vague, commits to a visual system up front, presents multiple
-  variations, and avoids AI-design tropes (aggressive gradients, emoji
-  bullets, rounded-card-with-left-border,
-  CSS-silhouettes-as-product-shots).
+  "animate this concept", "build a pitch deck", "create a poster",
+  "visualize this idea", or "design something for a brand". Enforces fact
+  verification (WebSearch before assuming a product exists or its version),
+  the Core Asset Protocol for branded work (logo, product shots, and UI
+  screenshots are first-class, not just colors and fonts), a Design Direction
+  Advisor fallback that offers 3 differentiated directions from 10 design
+  philosophies when the brief is too vague, commits to a visual system up
+  front, presents multiple variations, and avoids AI-design tropes
+  (aggressive gradients, emoji bullets, generic templates).
 ---
 
 # Claude Design
@@ -137,7 +134,7 @@ Tweaks is a specific protocol (registering a message listener, posting `__edit_m
 ## Verification
 
 Before claiming "done":
-1. Open the HTML in a real browser. (In Claude Code, use `/browse` — do not use raw `mcp__claude-in-chrome__*` or `mcp__computer-use__*`.)
+1. Open the HTML in a real browser, using whichever entry point your environment provides: the host's built-in preview, `/browse` (if gstack is installed), `mcp__claude-in-chrome__*`, or `mcp__computer-use__*`.
 2. Check the browser console is clean — no 404s, no JS errors, no React mount failures.
 3. At fixed-size content (decks, animations): test the scaling on a small viewport; controls (prev/next, play/pause) must stay reachable.
 4. Click through at least the primary flow on interactive prototypes.

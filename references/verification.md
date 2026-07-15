@@ -6,7 +6,7 @@ Claiming "done" without loading the HTML in a real browser is a guess, not a del
 
 For every design artifact, before you declare done:
 
-1. **Open the HTML in a real browser.** In Claude Code, use `/browse` — never use raw `mcp__claude-in-chrome__*` or `mcp__computer-use__*` as the default. If you're in a host environment with its own preview/iframe, use that preview. Either way: a real browser load is required.
+1. **Open the HTML in a real browser.** Use whichever entry point your environment provides: the host's built-in preview/iframe, `/browse` (if gstack is installed), `mcp__claude-in-chrome__*`, or `mcp__computer-use__*`. Either way: a real browser load is required.
 2. **Read the browser console.** Any 404s, JS errors, or React mount warnings mean something is broken. Fix them. Re-verify.
 3. **Test the scaling.** For fixed-size content (decks, animations, posters), resize the preview pane or viewport to multiple sizes. The content should letterbox cleanly and controls should remain usable.
 4. **Click through at least one flow.** For interactive prototypes, click the primary path — sign-up, onboarding, core interaction. Don't trust that click handlers work because "the code looks right."
@@ -82,8 +82,11 @@ Over-verification wastes context and the user's patience. Under-verification shi
 
 ## Tooling notes
 
-- **`/browse`** (gstack) — the default. Fast headless browser, DOM-aware, takes screenshots, runs JS probes.
-- **`mcp__claude-in-chrome__*`** — only as a fallback when `/browse` isn't enough (logged-in sessions, complex state).
-- **`mcp__computer-use__*`** — only for native desktop tasks, and tier-"read" for browsers means you can screenshot but not click. Rarely the right tool here.
+Pick the verification entry point based on what your environment provides:
 
-For everyday design verification, `/browse` is the answer.
+- **Host built-in preview** — if your host has its own preview/iframe pane, it's often the fastest path.
+- **`/browse`** (gstack, if installed) — fast headless browser, DOM-aware, takes screenshots, runs JS probes.
+- **`mcp__claude-in-chrome__*`** — real Chrome; useful for logged-in sessions and complex state.
+- **`mcp__computer-use__*`** — desktop-level automation; note tier-"read" for browsers means you can screenshot but not click.
+
+Whichever entry point you use, the requirement is the same: actually load the page in a real browser and observe it.

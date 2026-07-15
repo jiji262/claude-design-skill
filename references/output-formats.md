@@ -153,7 +153,7 @@ See [assets/deck-stage.html](../assets/deck-stage.html) for a minimal working sk
 
 **Rules:**
 - Center the prototype in the viewport, or fill the viewport with reasonable margins. Don't add a "title screen" wrapper around the prototype — dive straight into the product.
-- If it's a mobile UI mockup, wrap it in an iOS or Android device frame (see [assets/device-frames/](../assets/device-frames/)).
+- If it's a mobile UI mockup, wrap it in an iOS or Android device frame (see [assets/device-frames.md](../assets/device-frames.md)).
 - Real state, not `window.alert`. If the user can click through a sign-up flow, the flow should actually advance state.
 - Mock the backend inline — `const users = { ... }; const login = (u, p) => users[u]?.password === p`. Don't call out to a real API.
 - Never use `scrollIntoView` — it can disrupt embedding in preview environments. Use `element.scrollTop = ...` or `element.scrollTo(...)` instead.
