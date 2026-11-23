@@ -1,0 +1,239 @@
+<!doctype html>
+<!--
+  Demo 1 · Slide deck
+  Style: Swiss Editorial (Pentagram / Vignelli lineage)
+  System:
+    Type: GT America (display) + GT America (body) — 14 / 22 / 32 / 72 / 160
+    Color: #111 ink on #f4f0ea cream; accent #d93a1c used once per slide max
+    Grid: 12 col, hairline horizontal rules, left-flush
+    Rhythm: numbered sections, oversized folios, quiet captions
+
+  Shows: deck scaling · 1-indexed data-screen-labels · keyboard nav · localStorage persistence
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Demo · Ledger — a note-taking product (Swiss Editorial)</title>
+  <link rel="preconnect" href="https://rsms.me/">
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <style>
+    :root {
+      --cream: #f4f0ea;
+      --ink: #111;
+      --accent: #d93a1c;
+      --rule: #1a1a1a;
+      --mute: #6b6359;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0; height: 100%; overflow: hidden;
+      background: #0a0a0a;
+      font-family: 'Inter', -apple-system, system-ui, sans-serif;
+      font-feature-settings: 'ss01', 'ss03', 'cv11';
+    }
+    .stage { position: fixed; inset: 0; display: grid; place-items: center; }
+    .canvas {
+      width: 1920px; height: 1080px;
+      background: var(--cream);
+      transform-origin: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.3);
+    }
+    .slide {
+      position: absolute; inset: 0; display: none;
+      color: var(--ink);
+      padding: 96px 160px;
+    }
+    .slide.active { display: block; }
+
+    /* Common atoms */
+    .folio {
+      position: absolute; top: 96px; left: 160px;
+      font-size: 14px; letter-spacing: 0.2em; font-weight: 500;
+      text-transform: uppercase; color: var(--mute);
+    }
+    .brand {
+      position: absolute; top: 96px; right: 160px;
+      font-size: 14px; letter-spacing: 0.2em; font-weight: 600;
+      text-transform: uppercase; color: var(--ink);
+    }
+    .rule { border: none; border-top: 1px solid var(--rule); margin: 0; }
+    .accent { color: var(--accent); }
+    h1, h2, h3, h4 { font-weight: 500; letter-spacing: -0.02em; margin: 0; line-height: 1.02; }
+    p  { font-size: 22px; line-height: 1.4; color: var(--ink); margin: 0; }
+    .eyebrow { font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); font-weight: 500; }
+
+    /* Slide 1 — Title */
+    .s1 .title { font-size: 160px; font-weight: 400; letter-spacing: -0.04em; line-height: 0.92; }
+    .s1 .sub { position: absolute; bottom: 96px; left: 160px; right: 160px; display: flex; justify-content: space-between; align-items: flex-end; gap: 64px; }
+    .s1 .sub p { font-size: 22px; max-width: 540px; color: var(--ink); }
+    .s1 .big-number { font-size: 240px; font-weight: 400; letter-spacing: -0.05em; line-height: 1; color: var(--accent); }
+
+    /* Slide 2 — Section index */
+    .s2 h2 { font-size: 96px; margin-bottom: 64px; font-weight: 400; }
+    .s2 ol { list-style: none; padding: 0; margin: 0; counter-reset: item; }
+    .s2 li {
+      padding: 32px 0;
+      border-top: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      align-items: center;
+      font-size: 40px;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+    .s2 li:last-child { border-bottom: 1px solid var(--rule); }
+    .s2 li::before { content: counter(item, decimal-leading-zero); counter-increment: item; color: var(--mute); font-size: 22px; letter-spacing: 0.1em; }
+    .s2 li .page-ref { font-size: 22px; color: var(--mute); letter-spacing: 0.1em; }
+
+    /* Slide 3 — Problem / quote */
+    .slide.active.s3 { display: grid; grid-template-rows: auto 1fr auto; gap: 64px; }
+    .s3 .quote-body { font-size: 96px; font-weight: 400; letter-spacing: -0.03em; line-height: 1.05; max-width: 1300px; }
+    .s3 .attrib { font-size: 20px; color: var(--mute); letter-spacing: 0.05em; }
+    .s3 .quote-body .emph { color: var(--accent); }
+
+    /* Slide 4 — Data */
+    .s4 h3 { font-size: 40px; margin-bottom: 48px; font-weight: 400; }
+    .s4 .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-top: 1px solid var(--rule); }
+    .s4 .cell { padding: 48px 0; border-bottom: 1px solid var(--rule); }
+    .s4 .cell + .cell { border-left: 1px solid var(--rule); padding-left: 48px; }
+    .s4 .stat { font-size: 128px; font-weight: 400; letter-spacing: -0.04em; line-height: 1; }
+    .s4 .label { font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); margin-top: 16px; max-width: 420px; }
+    .s4 .footnote { font-size: 16px; color: var(--mute); margin-top: 32px; letter-spacing: 0.02em; }
+
+    /* Slide 5 — Close */
+    .slide.active.s5 { display: grid; place-items: center; text-align: center; }
+    .s5 .mark { font-size: 48px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 48px; }
+    .s5 .contact { font-size: 22px; color: var(--mute); letter-spacing: 0.02em; }
+
+    /* Chrome */
+    .chrome {
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; gap: 10px; align-items: center; z-index: 10;
+      color: #fff; font-size: 13px; font-family: 'Inter', sans-serif;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      padding: 8px 12px; border-radius: 6px;
+    }
+    .chrome button {
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.15);
+      color: white; font: inherit; padding: 6px 12px; border-radius: 4px; cursor: pointer;
+    }
+    .chrome button:hover { background: rgba(255,255,255,0.22); }
+    .counter { opacity: 0.6; min-width: 44px; text-align: center; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="canvas" id="canvas">
+
+      <section class="slide active s1" data-screen-label="01 Title">
+        <span class="folio">01 / 05</span>
+        <span class="brand">Ledger</span>
+        <h1 class="title">
+          Write<br>
+          like you<br>
+          <span class="accent">think.</span>
+        </h1>
+        <div class="sub">
+          <p>Ledger is a notebook for the shape of ideas, not the shape of documents. Series A, 2026.</p>
+          <span class="big-number">01</span>
+        </div>
+      </section>
+
+      <section class="slide s2" data-screen-label="02 Contents">
+        <span class="folio">02 / 05</span>
+        <span class="brand">Ledger</span>
+        <hr class="rule">
+        <h2>What we'll cover.</h2>
+        <ol>
+          <li><span>The moment a note becomes a thought</span><span class="page-ref">pp. 03</span></li>
+          <li><span>Why outlining is the wrong primitive</span><span class="page-ref">pp. 04</span></li>
+          <li><span>How Ledger earns its place in your day</span><span class="page-ref">pp. 05</span></li>
+        </ol>
+      </section>
+
+      <section class="slide s3" data-screen-label="03 Problem">
+        <span class="folio">03 / 05</span>
+        <span class="brand">Ledger</span>
+        <hr class="rule">
+        <h3 class="eyebrow">Problem</h3>
+        <p class="quote-body">
+          Today's notes apps let you <span class="emph">type anything</span>,<br>
+          but none of them help you <span class="emph">think about it</span>.
+        </p>
+        <div class="attrib">— OBSERVATIONS FROM 40 KNOWLEDGE WORKERS · MARCH 2026</div>
+      </section>
+
+      <section class="slide s4" data-screen-label="04 Data">
+        <span class="folio">04 / 05</span>
+        <span class="brand">Ledger</span>
+        <hr class="rule">
+        <h3>In the first 90 days, early users said:</h3>
+        <div class="grid">
+          <div class="cell">
+            <div class="stat">73<span style="font-size: 64px;">%</span></div>
+            <div class="label">Ended the day with fewer open browser tabs</div>
+          </div>
+          <div class="cell">
+            <div class="stat">2.8<span style="font-size: 64px;">×</span></div>
+            <div class="label">More notes cross-linked to prior notes vs. baseline</div>
+          </div>
+          <div class="cell">
+            <div class="stat">40<span style="font-size: 64px;">%</span></div>
+            <div class="label">Less time spent re-finding something they wrote last week</div>
+          </div>
+        </div>
+        <div class="footnote">Self-reported; n = 112; baseline = primary note app before Ledger. Read the methodology at ledger.app/research.</div>
+      </section>
+
+      <section class="slide s5" data-screen-label="05 Close">
+        <span class="folio">05 / 05</span>
+        <span class="brand">Ledger</span>
+        <div>
+          <div class="mark"><span class="accent">Ledger</span></div>
+          <div class="contact">hello@ledger.app · ledger.app</div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <nav class="chrome">
+    <button id="prev">← Prev</button>
+    <span class="counter" id="counter">1/5</span>
+    <button id="next">Next →</button>
+  </nav>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('canvas');
+      const slides = [...document.querySelectorAll('.slide')];
+      const counter = document.getElementById('counter');
+      const KEY = 'demo-1-deck-idx';
+      let idx = Number(localStorage.getItem(KEY)) || 0;
+      if (idx < 0 || idx >= slides.length) idx = 0;
+
+      const go = (to) => {
+        idx = Math.max(0, Math.min(slides.length - 1, to));
+        slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+        counter.textContent = `${idx + 1}/${slides.length}`;
+        localStorage.setItem(KEY, String(idx));
+      };
+      const fit = () => {
+        const s = Math.min(innerWidth / 1920, innerHeight / 1080);
+        canvas.style.transform = `scale(${s})`;
+      };
+      document.getElementById('prev').onclick = () => go(idx - 1);
+      document.getElementById('next').onclick = () => go(idx + 1);
+      addEventListener('keydown', (e) => {
+        if (['ArrowLeft', 'PageUp'].includes(e.key)) go(idx - 1);
+        if (['ArrowRight', 'PageDown', ' '].includes(e.key)) go(idx + 1);
+      });
+      addEventListener('resize', fit);
+      fit();
+      go(idx);
+    })();
+  </script>
+</body>
+</html>

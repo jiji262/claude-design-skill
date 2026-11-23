@@ -1,0 +1,95 @@
+{
+  "skill_name": "claude-design",
+  "description": "Test scenarios for the claude-design skill. Each case describes a realistic user prompt, the behaviors the skill should exhibit, and the specific guardrails being tested. These prompts are designed to exercise different branches of the skill (vague brief → advisor mode, named-brand → asset protocol, product-named → fact verification, output format picking, anti-slop enforcement).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "vague-landing-page-triggers-advisor-mode",
+      "prompt": "Help me design a landing page for a SaaS product. Give me 3 different style directions to compare.",
+      "expected": [
+        "Asks clarifying questions about the product, audience, and whether there's any existing brand context",
+        "When the user has no brand/system to anchor on, enters Design Direction Advisor mode",
+        "Proposes 3 styles from different schools (e.g., Swiss Editorial + Kenya Hara quiet minimalism + Field.io motion) — not three similar minimalist variants",
+        "Each direction has a one-sentence pitch, a recognizable flagship brand/designer, 3 vibe keywords, and one sentence on what it means for a landing page",
+        "Builds a 3-cell design canvas preview, each cell clearly labeled with its direction and what it's exploring",
+        "Does not ship aggressive purple gradients, emoji bullets, rounded-cards-with-left-border, or Inter display — the anti-slop tells"
+      ],
+      "guardrails_tested": ["workflow.md clarifying pattern", "design-styles.md advisor mode", "variations-and-tweaks.md canvas", "design-principles.md anti-slop"]
+    },
+    {
+      "id": 2,
+      "name": "named-brand-triggers-asset-protocol",
+      "prompt": "Design a launch video landing page for DJI Pocket 4.",
+      "expected": [
+        "Before anything else: runs WebSearch to verify DJI Pocket 4's existence, release status, version, and specs (Priority #0 fact verification)",
+        "Writes findings to product-facts.md in the project",
+        "Recognizes this as a branded task and enters the 5-step Core Asset Protocol: asks the user for all 6 asset types (logo, product renders, UI screenshots, colors, fonts, guidelines)",
+        "Does NOT settle for just extracting color hexes from the DJI site — hunts for the logo SVG, product renders, and Pocket 4 UI",
+        "Uses the real product render in the hero — not a CSS silhouette or SVG outline of a camera",
+        "Freezes findings into brand-spec.md before building",
+        "Applies the 5-10-2-8 rule to non-logo imagery (5 rounds, 10 candidates, 2 keepers, each ≥ 8/10)"
+      ],
+      "guardrails_tested": ["fact-verification.md priority #0", "brand-context.md 5-step protocol", "design-principles.md 'no CSS silhouettes as product shots'"]
+    },
+    {
+      "id": 3,
+      "name": "pitch-deck-scale-and-system-discipline",
+      "prompt": "Make me a 10-slide pitch deck for an AI startup. Audience is Series A investors.",
+      "expected": [
+        "Uses assets/deck-stage.html as the scaffold (not hand-rolled scaling logic)",
+        "Vocalizes the visual system up front (type scale, 1-2 background colors, layout rhythm) in a top-of-file comment or assumption block",
+        "Mixes slide layouts: section dividers / content slides / data slides / quote slides — intentional variety, not identical layouts",
+        "Body text ≥ 24px on 1920×1080 slides; headers ≥ 64px",
+        "Slides labeled 1-indexed with data-screen-label like '01 Title', '02 Problem' — matching the visible counter",
+        "Shows the first draft with placeholders early, then iterates — does not try to one-shot a perfect 10-slide deck",
+        "No speaker notes unless the user asks for them"
+      ],
+      "guardrails_tested": ["output-formats.md deck skeleton", "assets/deck-stage.html usage", "design-principles.md scale floors", "workflow.md early-show pattern"]
+    },
+    {
+      "id": 4,
+      "name": "motion-design-with-time-discipline",
+      "prompt": "Create a 30-second HTML animation explaining how a neural network works.",
+      "expected": [
+        "Uses assets/animations.jsx (Stage + Sprite + useTime + Easing + interpolate) rather than improvising raw setInterval",
+        "Writes a timeline outline first (what happens at 0s, 5s, 10s, 15s, 20s, 25s, 30s) before writing components",
+        "Phases the story: setup → exploration → insight → resolution. Not just stacking animations end-to-end",
+        "Uses outCubic for entrances, inCubic for exits, or similar directional easing — not linear",
+        "Text holds on screen for ≥ 3 seconds of readability before transitioning",
+        "Does not use gradient orbs 'representing AI' as the primary visual — finds a more specific metaphor",
+        "Exports a scrubber + play/pause + localStorage playhead persistence so the user can iterate"
+      ],
+      "guardrails_tested": ["assets/animations.jsx pattern", "output-formats.md animation rules", "design-principles.md gradient-orb rule", "verification.md animation checks"]
+    },
+    {
+      "id": 5,
+      "name": "ios-prototype-with-real-image-sources",
+      "prompt": "Prototype an iOS habit tracker app — I want 5 screens (home, new habit, detail, stats, settings) that actually click through.",
+      "expected": [
+        "Wraps each screen in assets/device-frames.md iOS frame (Dynamic Island, status bar, home indicator)",
+        "Lays out 5 screens side-by-side as an overview, with each screen fully visible — not a single-screen flow where the user has to click through to see the whole thing",
+        "Habit tracker is a high-density UI — each screen has ≥ 3 information-density elements (completion rate, streak count, trend graph, achievement badges), and they represent real data not decoration",
+        "Uses real images where possible (from Wikimedia/Met/Unsplash for illustrative imagery; no AI-generated user photos)",
+        "Primary flow (add habit → check off → see streak) actually advances state, not just visual toggles",
+        "No scrollIntoView in the code (breaks embedded previews)",
+        "Pinned React + Babel versions with integrity hashes"
+      ],
+      "guardrails_tested": ["output-formats.md prototype skeleton", "assets/device-frames.md iOS frame", "react-babel.md pinning", "design-principles.md information density for high-density types"]
+    },
+    {
+      "id": 6,
+      "name": "tweaks-instead-of-n-separate-files",
+      "prompt": "I want to see my pricing page in 3 variants: warm (cream + coral accent), tech (black + neon green), editorial (serif + generous whitespace). Can I toggle between them?",
+      "expected": [
+        "Produces a SINGLE HTML file with a Tweaks panel that cycles between the 3 variants — not 3 separate pricing-page files",
+        "Tweaks panel in the bottom-right corner, collapsed by default, title 'Tweaks'",
+        "Registers the postMessage listener FIRST, then announces __edit_mode_available — order matters",
+        "Wraps defaults in /*EDITMODE-BEGIN*/{...}/*EDITMODE-END*/ markers with valid JSON",
+        "Applies changes live on the page AND persists via postMessage __edit_mode_set_keys (if host available) OR localStorage (standalone)",
+        "When Tweaks is OFF, the design looks final — the panel is hidden, not just greyed out",
+        "Does not over-engineer the tweak controls (a simple 3-option variant selector is fine; no tabs, no nested menus)"
+      ],
+      "guardrails_tested": ["variations-and-tweaks.md protocol", "assets/tweaks-starter.html pattern"]
+    }
+  ]
+}

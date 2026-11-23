@@ -1,0 +1,338 @@
+<!doctype html>
+<!--
+  Demo 3 · Interactive iOS prototype
+  Fictional app: "Shelf" — a reading tracker. 3-screen overview.
+  Demonstrates:
+    · pinned React + Babel with integrity hashes
+    · multiple iOS device frames side-by-side as an overview
+    · actual state (adding a book, marking progress) — not just visual toggles
+    · information density (cover, title, author, % progress, last-read chip)
+    · no scrollIntoView, no unpinned versions, no Object.assign scope leaks
+  Open in a browser; clicks are interactive.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Demo · Shelf iOS prototype</title>
+  <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <script
+    src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+    integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+    integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+    crossorigin="anonymous"></script>
+  <script
+    src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+    integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+    crossorigin="anonymous"></script>
+  <style>
+    :root { --ink: #1a1814; --paper: #faf7f0; --mute: #6b6155; --accent: #a54a2a; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #e8e3d9; font-family: 'Inter', -apple-system, system-ui, sans-serif; color: var(--ink); }
+    .page { padding: 56px 32px; max-width: 1500px; margin: 0 auto; }
+    .page-head h1 { font-size: 26px; font-weight: 500; letter-spacing: -0.01em; margin: 0; }
+    .page-head p  { margin: 6px 0 0; color: var(--mute); font-size: 14px; max-width: 640px; line-height: 1.5; }
+
+    .row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px;
+      margin-top: 40px; align-items: start;
+    }
+    .screen-label { text-align: center; font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-top: 18px; }
+
+    /* iOS frame */
+    .iphone { width: 100%; aspect-ratio: 393 / 852; background: #000; border-radius: 56px; padding: 14px; box-shadow: 0 1px 0 rgba(255,255,255,0.1) inset, 0 24px 40px rgba(0,0,0,0.15); position: relative; margin: 0 auto; max-width: 393px; }
+    .iphone .screen { width: 100%; height: 100%; background: var(--paper); border-radius: 44px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+    .iphone .island { position: absolute; top: 11px; left: 50%; transform: translateX(-50%); width: 126px; height: 37px; background: #000; border-radius: 20px; z-index: 10; }
+    .iphone .status { position: absolute; top: 0; left: 0; right: 0; height: 54px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 600; z-index: 5; color: var(--ink); }
+    .iphone .home-indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: #000; border-radius: 3px; opacity: 0.35; z-index: 10; }
+    .app { padding: 60px 20px 32px; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* shared app atoms */
+    .app-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 32px; letter-spacing: -0.01em; }
+    .app-sub { color: var(--mute); font-size: 13px; margin-top: 2px; }
+    .bar { height: 6px; background: rgba(165, 74, 42, 0.15); border-radius: 6px; overflow: hidden; }
+    .bar > span { display: block; height: 100%; background: var(--accent); }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; background: rgba(26,24,20,0.06); color: var(--ink); }
+    .chip.now { background: rgba(165, 74, 42, 0.12); color: var(--accent); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 14px 20px; border-radius: 14px; font: inherit; font-weight: 500; font-size: 15px;
+      background: var(--ink); color: var(--paper); border: none; cursor: pointer;
+      min-height: 44px; /* hit target */
+    }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1px solid rgba(26,24,20,0.15); }
+    .btn.full { width: 100%; }
+
+    /* Book cover placeholder */
+    .cover {
+      aspect-ratio: 2 / 3; border-radius: 4px;
+      display: grid; place-items: center; text-align: center;
+      font-family: 'Fraunces', serif; font-weight: 500; letter-spacing: -0.01em;
+      padding: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+      color: white;
+    }
+    .cover .ct { font-size: 14px; line-height: 1.2; }
+    .cover .ca { font-size: 10px; opacity: 0.75; margin-top: 6px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .cover.c1 { background: linear-gradient(160deg, #2d3e4f, #1a2732); }
+    .cover.c2 { background: linear-gradient(160deg, #8b3a2f, #5a2218); }
+    .cover.c3 { background: linear-gradient(160deg, #a88a5e, #6b5438); }
+    .cover.c4 { background: linear-gradient(160deg, #3c4d3d, #1f2a20); }
+    .cover.c5 { background: linear-gradient(160deg, #5a4a73, #36294a); }
+
+    /* Screen 1 — home */
+    .s1 .app-head { display: flex; align-items: baseline; justify-content: space-between; }
+    .s1 .current { margin-top: 24px; padding: 16px; background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); display: grid; grid-template-columns: 64px 1fr; gap: 14px; align-items: center; }
+    .s1 .current .cover { aspect-ratio: 2/3; width: 64px; margin: 0; }
+    .s1 .current .meta { display: flex; flex-direction: column; gap: 4px; }
+    .s1 .current .meta .t { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 500; line-height: 1.2; }
+    .s1 .current .meta .a { color: var(--mute); font-size: 11px; }
+    .s1 .current .meta .pct { font-size: 11px; color: var(--mute); display: flex; justify-content: space-between; margin-top: 4px; }
+    .s1 .grid-books { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+    .s1 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: auto; padding-top: 14px; }
+    .s1 .stat { background: white; border-radius: 12px; padding: 10px 8px; border: 1px solid rgba(0,0,0,0.04); }
+    .s1 .stat .n { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; line-height: 1; }
+    .s1 .stat .l { font-size: 9px; color: var(--mute); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+    /* Screen 2 — detail */
+    .s2 .hero { display: grid; grid-template-columns: 88px 1fr; gap: 14px; align-items: end; }
+    .s2 .hero .cover { width: 88px; margin: 0; }
+    .s2 .hero .titleblock .t { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1.1; font-weight: 500; letter-spacing: -0.01em; }
+    .s2 .hero .titleblock .a { color: var(--mute); font-size: 12px; margin-top: 3px; }
+    .s2 .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 16px; }
+    .s2 .section-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); margin-top: 20px; }
+    .s2 .progress-block { margin-top: 8px; background: white; padding: 14px; border-radius: 14px; border: 1px solid rgba(0,0,0,0.04); }
+    .s2 .progress-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 12px; color: var(--mute); margin-bottom: 8px; }
+    .s2 .progress-row strong { font-family: 'Fraunces', serif; color: var(--ink); font-weight: 500; font-size: 15px; }
+    .s2 .stepper { display: flex; gap: 8px; margin-top: 12px; }
+    .s2 .stepper button { flex: 1; min-height: 36px; font-size: 13px; border-radius: 10px; background: rgba(26,24,20,0.06); border: none; font-weight: 500; color: var(--ink); cursor: pointer; }
+    .s2 .stepper button:active { background: rgba(26,24,20,0.12); }
+    .s2 .quote { font-family: 'Fraunces', serif; font-style: italic; font-size: 14px; line-height: 1.4; color: var(--ink); border-left: 2px solid var(--accent); padding-left: 12px; margin-top: 10px; }
+    .s2 .quote footer { font-family: 'Inter', sans-serif; font-style: normal; font-size: 10px; color: var(--mute); margin-top: 4px; letter-spacing: 0.05em; text-transform: uppercase; }
+    .s2 .cta { margin-top: auto; }
+
+    /* Screen 3 — stats */
+    .s3 .grid-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+    .s3 .stat-card { background: white; border: 1px solid rgba(0,0,0,0.05); border-radius: 16px; padding: 14px; }
+    .s3 .stat-card .n { font-family: 'Fraunces', serif; font-size: 28px; line-height: 1; font-weight: 500; }
+    .s3 .stat-card .l { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--mute); margin-top: 6px; }
+    .s3 .bars { margin-top: 18px; padding: 16px; background: white; border-radius: 16px; border: 1px solid rgba(0,0,0,0.04); }
+    .s3 .bars .section-title { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--mute); }
+    .s3 .month-row { display: grid; grid-template-columns: 32px 1fr 36px; gap: 10px; align-items: center; margin-top: 12px; font-size: 11px; color: var(--mute); }
+    .s3 .month-row .m-bar { height: 14px; background: rgba(165,74,42,0.1); border-radius: 4px; overflow: hidden; }
+    .s3 .month-row .m-bar span { display: block; height: 100%; background: var(--accent); }
+    .s3 .month-row .n { text-align: right; font-family: 'Fraunces', serif; color: var(--ink); font-weight: 500; }
+    .s3 .last-read { margin-top: 18px; padding: 14px; border-radius: 14px; background: rgba(165,74,42,0.08); border: 1px solid rgba(165,74,42,0.15); font-size: 12px; line-height: 1.4; }
+    .s3 .last-read strong { font-family: 'Fraunces', serif; font-weight: 500; }
+
+    /* helpers */
+    .spacer { flex: 1; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="page-head">
+      <h1>Shelf — reading tracker · 3-screen overview</h1>
+      <p>An iOS prototype demo. Each phone is a live, state-driven screen — click the "mark page" buttons on the detail screen and watch the progress propagate to the home screen's current-read card and the stats screen's numbers. No scrollIntoView, no generic gradient orbs, no emoji bullets.</p>
+    </header>
+
+    <div id="root"></div>
+  </div>
+
+  <script type="text/babel" data-presets="react">
+    const { useState, useMemo } = React;
+
+    // ---- Data ----
+    const initialBooks = [
+      { id: 1, title: "The Way of the Shepherd", author: "Kevin Leman", pages: 104, read: 62, cover: "c1", tags: ["Leadership"] },
+      { id: 2, title: "In Praise of Shadows",    author: "Tanizaki",     pages: 74,  read: 74, cover: "c3", tags: ["Essay"] },
+      { id: 3, title: "Letters to a Young Poet", author: "Rilke",        pages: 92,  read: 18, cover: "c2", tags: ["Letters"] },
+      { id: 4, title: "The Overstory",            author: "Powers",       pages: 502, read: 304,cover: "c4", tags: ["Fiction"] },
+      { id: 5, title: "Staff Engineer",           author: "Larson",       pages: 298, read: 0,  cover: "c5", tags: ["Craft"] },
+      { id: 6, title: "A Pattern Language",       author: "Alexander",    pages: 1171,read: 220,cover: "c3", tags: ["Reference"] },
+    ];
+
+    function Cover({ cover, title, author, className="" }) {
+      const cls = `cover ${cover} ${className}`.trim();
+      return (
+        <div className={cls} aria-hidden>
+          <div>
+            <div className="ct">{title}</div>
+            <div className="ca">{author}</div>
+          </div>
+        </div>
+      );
+    }
+
+    function Frame({ label, children }) {
+      return (
+        <div>
+          <div className="iphone">
+            <div className="screen">
+              <div className="island" />
+              <div className="status"><span>9:41</span><span>● ▮ ▬</span></div>
+              <div className="app">{children}</div>
+              <div className="home-indicator" />
+            </div>
+          </div>
+          <div className="screen-label">{label}</div>
+        </div>
+      );
+    }
+
+    function HomeScreen({ books }) {
+      const current = books.find(b => b.read > 0 && b.read < b.pages);
+      const finishedCount = books.filter(b => b.read === b.pages).length;
+      const startedCount  = books.filter(b => b.read > 0 && b.read < b.pages).length;
+      const queueCount    = books.filter(b => b.read === 0).length;
+
+      return (
+        <div className="s1">
+          <div className="app-head">
+            <h2 className="app-title">Shelf</h2>
+            <span className="chip">Spring ’26</span>
+          </div>
+          <div className="app-sub">Morning, Dennis — {current ? `page ${current.read} of ${current.title.split(' ')[0]}` : 'no active book'}</div>
+
+          {current && (
+            <div className="current">
+              <Cover cover={current.cover} title={current.title} author={current.author}/>
+              <div className="meta">
+                <div className="t">{current.title}</div>
+                <div className="a">{current.author}</div>
+                <div className="bar" style={{marginTop:6}}><span style={{width: (100*current.read/current.pages)+'%'}}/></div>
+                <div className="pct"><span>{Math.round(100*current.read/current.pages)}% read</span><span>{current.pages - current.read}p left</span></div>
+              </div>
+            </div>
+          )}
+
+          <div className="grid-books">
+            {books.slice(1,4).map(b => <Cover key={b.id} cover={b.cover} title={b.title} author={b.author}/>)}
+          </div>
+
+          <div className="stats">
+            <div className="stat"><div className="n">{finishedCount}</div><div className="l">Finished</div></div>
+            <div className="stat"><div className="n">{startedCount}</div><div className="l">Reading</div></div>
+            <div className="stat"><div className="n">{queueCount}</div><div className="l">In queue</div></div>
+          </div>
+        </div>
+      );
+    }
+
+    function DetailScreen({ book, onRead }) {
+      const pct = Math.round(100*book.read/book.pages);
+      const left = book.pages - book.read;
+      return (
+        <div className="s2" style={{display:'flex', flexDirection:'column', height: '100%'}}>
+          <div className="hero">
+            <Cover cover={book.cover} title={book.title} author={book.author}/>
+            <div className="titleblock">
+              <div className="t">{book.title}</div>
+              <div className="a">{book.author} · {book.pages}p</div>
+            </div>
+          </div>
+          <div className="chips">
+            {book.tags.map(t => <span className="chip" key={t}>{t}</span>)}
+            <span className="chip now">Reading now</span>
+          </div>
+
+          <div className="section-title">Progress</div>
+          <div className="progress-block">
+            <div className="progress-row"><strong>{book.read} / {book.pages}</strong><span>{pct}% · {left}p left</span></div>
+            <div className="bar"><span style={{width: pct+'%'}}/></div>
+            <div className="stepper">
+              <button onClick={() => onRead(book.id, -5)} aria-label="minus 5 pages">− 5p</button>
+              <button onClick={() => onRead(book.id,  +5)} aria-label="plus 5 pages">+ 5p</button>
+              <button onClick={() => onRead(book.id, +20)} aria-label="plus 20 pages">+ 20p</button>
+              <button onClick={() => onRead(book.id, 'done')} aria-label="mark finished">Finish</button>
+            </div>
+          </div>
+
+          <div className="section-title">Last note</div>
+          <blockquote className="quote">
+            "The shepherd does not drive the flock. He walks ahead, and the flock chooses to follow."
+            <footer>P. 42 · logged yesterday</footer>
+          </blockquote>
+
+          <div className="spacer"/>
+          <div className="cta">
+            <button className="btn full">Open reading mode →</button>
+          </div>
+        </div>
+      );
+    }
+
+    function StatsScreen({ books }) {
+      const finished = books.filter(b => b.read === b.pages).length;
+      const reading  = books.filter(b => b.read > 0 && b.read < b.pages).length;
+      const totalPages = books.reduce((a,b) => a + b.read, 0);
+      const goalPct = Math.min(100, Math.round(100 * totalPages / 3000));
+
+      const months = [
+        { m: 'Jan', n: 2 }, { m: 'Feb', n: 3 }, { m: 'Mar', n: 1 }, { m: 'Apr', n: 4 },
+      ];
+      const maxN = Math.max(...months.map(x => x.n));
+      const current = books.find(b => b.read > 0 && b.read < b.pages);
+
+      return (
+        <div className="s3">
+          <h2 className="app-title">2026</h2>
+          <div className="app-sub">Goal · 3,000 pages by December</div>
+
+          <div className="grid-stats">
+            <div className="stat-card"><div className="n">{finished}</div><div className="l">Finished</div></div>
+            <div className="stat-card"><div className="n">{reading}</div><div className="l">Reading</div></div>
+            <div className="stat-card"><div className="n">{totalPages.toLocaleString()}</div><div className="l">Pages read</div></div>
+            <div className="stat-card"><div className="n">{goalPct}%</div><div className="l">Of year goal</div></div>
+          </div>
+
+          <div className="bars">
+            <div className="section-title">Books finished by month</div>
+            {months.map(x => (
+              <div className="month-row" key={x.m}>
+                <span>{x.m}</span>
+                <div className="m-bar"><span style={{width: (100*x.n/maxN)+'%'}}/></div>
+                <span className="n">{x.n}</span>
+              </div>
+            ))}
+          </div>
+
+          {current && (
+            <div className="last-read">
+              Last logged · <strong>{current.title}</strong>, page {current.read} / {current.pages} — yesterday at 10:42 pm.
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [books, setBooks] = useState(initialBooks);
+      const current = books.find(b => b.read > 0 && b.read < b.pages) ?? books[0];
+
+      const onRead = (id, delta) => {
+        setBooks(prev => prev.map(b => {
+          if (b.id !== id) return b;
+          if (delta === 'done') return { ...b, read: b.pages };
+          const next = Math.max(0, Math.min(b.pages, b.read + delta));
+          return { ...b, read: next };
+        }));
+      };
+
+      return (
+        <div className="row">
+          <Frame label="01 — Home"><HomeScreen books={books}/></Frame>
+          <Frame label="02 — Book detail (interactive)"><DetailScreen book={current} onRead={onRead}/></Frame>
+          <Frame label="03 — Stats"><StatsScreen books={books}/></Frame>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
